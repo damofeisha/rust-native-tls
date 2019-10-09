@@ -314,6 +314,9 @@ pub enum Protocol {
     Tlsv11,
     /// The TLS 1.2 protocol.
     Tlsv12,
+    /// The TLS 1.3 protocol.
+    Tlsv13,
+
     #[doc(hidden)]
     __NonExhaustive,
 }
@@ -328,6 +331,7 @@ pub struct TlsConnectorBuilder {
     accept_invalid_hostnames: bool,
     use_sni: bool,
     disable_built_in_roots: bool,
+    cipher: Option<String>,
 }
 
 impl TlsConnectorBuilder {
@@ -354,6 +358,12 @@ impl TlsConnectorBuilder {
     /// Defaults to `None`.
     pub fn max_protocol_version(&mut self, protocol: Option<Protocol>) -> &mut TlsConnectorBuilder {
         self.max_protocol = protocol;
+        self
+    }
+
+    /// Sets the cipher suits
+    pub fn select_cipher_suit(&mut self, ciphers: Option<String>) -> &mut TlsConnectorBuilder {
+        self.cipher = ciphers;
         self
     }
 
@@ -464,6 +474,7 @@ impl TlsConnector {
             accept_invalid_certs: false,
             accept_invalid_hostnames: false,
             disable_built_in_roots: false,
+            cipher: None,
         }
     }
 

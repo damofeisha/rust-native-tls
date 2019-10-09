@@ -11,13 +11,14 @@ use self::openssl::ssl::{
     SslVerifyMode,
 };
 use self::openssl::x509::{X509, store::X509StoreBuilder, X509VerifyResult};
+
 use std::error;
 use std::fmt;
 use std::io;
 use std::sync::Once;
 
-use {Protocol, TlsAcceptorBuilder, TlsConnectorBuilder};
 use self::openssl::pkey::Private;
+use {Protocol, TlsAcceptorBuilder, TlsConnectorBuilder};
 
 #[cfg(have_min_max_version)]
 fn supported_protocols(
@@ -33,6 +34,8 @@ fn supported_protocols(
             Protocol::Tlsv10 => SslVersion::TLS1,
             Protocol::Tlsv11 => SslVersion::TLS1_1,
             Protocol::Tlsv12 => SslVersion::TLS1_2,
+            Protocol::Tlsv13 => SslVersion::TLS1_3,
+
             Protocol::__NonExhaustive => unreachable!(),
         }
     }
@@ -71,6 +74,13 @@ fn supported_protocols(
                 | SslOptions::NO_SSLV3
                 | SslOptions::NO_TLSV1
                 | SslOptions::NO_TLSV1_1
+        }
+        Some(Protocol::Tlsv13) => {
+            SslOptions::NO_SSLV2
+                | SslOptions::NO_SSLV3
+                | SslOptions::NO_TLSV1
+                | SslOptions::NO_TLSV1_1
+                | SslOptions::NO_TLSV1_2
         }
         Some(Protocol::__NonExhaustive) => unreachable!(),
     };
@@ -262,6 +272,7 @@ impl TlsConnector {
                 connector.add_extra_chain_cert(cert.to_owned())?;
             }
         }
+
         supported_protocols(builder.min_protocol, builder.max_protocol, &mut connector)?;
 
         if builder.disable_built_in_roots {
@@ -272,6 +283,11 @@ impl TlsConnector {
             if let Err(err) = connector.cert_store_mut().add_cert((cert.0).0.clone()) {
                 debug!("add_cert error: {:?}", err);
             }
+        }
+
+        if builder.cipher.is_some() {
+            // #[cfg(openssl111)]
+            connector.set_ciphersuites(builder.cipher.as_ref().unwrap())?;
         }
 
         #[cfg(target_os = "android")]
