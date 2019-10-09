@@ -27,7 +27,7 @@ fn supported_protocols(
     ctx: &mut SslContextBuilder,
 ) -> Result<(), ErrorStack> {
     use self::openssl::ssl::SslVersion;
-
+    println!("supported_protocols");
     fn cvt(p: Protocol) -> SslVersion {
         match p {
             Protocol::Sslv3 => SslVersion::SSL3,
@@ -324,7 +324,7 @@ pub struct TlsAcceptor(SslAcceptor);
 
 impl TlsAcceptor {
     pub fn new(builder: &TlsAcceptorBuilder) -> Result<TlsAcceptor, Error> {
-        let mut acceptor = SslAcceptor::mozilla_intermediate(SslMethod::tls())?;
+        let mut acceptor = SslAcceptor::mozilla_intermediate_v5(SslMethod::tls())?;
         acceptor.set_private_key(&builder.identity.0.pkey)?;
         acceptor.set_certificate(&builder.identity.0.cert)?;
         for cert in builder.identity.0.chain.iter().rev() {
