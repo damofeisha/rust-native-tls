@@ -27,7 +27,7 @@ fn supported_protocols(
     ctx: &mut SslContextBuilder,
 ) -> Result<(), ErrorStack> {
     use self::openssl::ssl::SslVersion;
-    println!("supported_protocols");
+    //println!("supported_protocols");
     fn cvt(p: Protocol) -> SslVersion {
         match p {
             Protocol::Sslv3 => SslVersion::SSL3,
